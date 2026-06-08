@@ -65,6 +65,85 @@
   }
   #export-btn:hover, #import-btn:hover { border-color: #0984e3; color: #0984e3; }
 
+  #calendar-btn {
+    background: #fff; border: 1.5px solid #ddd; padding: 8px 14px;
+    border-radius: 8px; cursor: pointer; font-size: .9rem; font-weight: 500;
+    color: #555; transition: all .15s;
+  }
+  #calendar-btn:hover { border-color: #fdcb6e; color: #b8860b; }
+
+  /* Calendar Log Modal */
+  .modal.calendar-modal { max-width: 560px; }
+  .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .cal-header h2 { font-size: 1.1rem; color: #2d3436; margin: 0; }
+  .cal-close-btn {
+    background: none; border: none; font-size: 1.1rem; color: #aaa;
+    cursor: pointer; padding: 4px 8px; transition: color .15s; line-height: 1;
+  }
+  .cal-close-btn:hover { color: #e74c3c; }
+  .cal-nav { display: flex; align-items: center; gap: 8px; margin: 14px 0 12px; flex-wrap: wrap; }
+  .cal-nav-btn {
+    background: #fff; border: 1.5px solid #e0e0e0; padding: 6px 12px;
+    border-radius: 6px; cursor: pointer; font-size: .85rem; color: #555;
+    transition: all .15s; line-height: 1;
+  }
+  .cal-nav-btn:hover { border-color: #6c5ce7; color: #6c5ce7; }
+  .cal-nav select {
+    padding: 6px 10px; border: 1.5px solid #e0e0e0; border-radius: 6px;
+    font-size: .85rem; outline: none; background: #fff; cursor: pointer;
+    font-family: inherit; color: #2d3436;
+  }
+  .cal-nav select:focus { border-color: #6c5ce7; }
+  .cal-today-btn {
+    margin-left: auto;
+    background: #6c5ce7; color: #fff; border: none; padding: 6px 14px;
+    border-radius: 6px; cursor: pointer; font-size: .8rem; font-weight: 600;
+    transition: background .15s;
+  }
+  .cal-today-btn:hover { background: #5a4bd1; }
+  .cal-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+    margin-bottom: 14px;
+  }
+  .cal-dow {
+    text-align: center; font-size: .68rem; font-weight: 700; color: #999;
+    text-transform: uppercase; letter-spacing: .5px; padding: 4px 0;
+  }
+  .cal-day {
+    aspect-ratio: 1; background: #fafafa; border: 1.5px solid transparent;
+    border-radius: 6px; cursor: pointer; padding: 0; position: relative;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .85rem; color: #555; transition: all .12s; font-family: inherit;
+  }
+  .cal-day:hover:not(.empty) { background: #f0ecff; border-color: #d6cefc; }
+  .cal-day.empty { cursor: default; background: transparent; pointer-events: none; }
+  .cal-day.today { border-color: #6c5ce7; color: #6c5ce7; font-weight: 700; }
+  .cal-day.selected { background: #6c5ce7; color: #fff; border-color: #6c5ce7; }
+  .cal-day.selected:hover { background: #5a4bd1; }
+  .cal-day.has-log::after {
+    content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
+    width: 5px; height: 5px; border-radius: 50%; background: #fdcb6e;
+  }
+  .cal-day.selected.has-log::after { background: #fff; }
+  .cal-selected-label {
+    font-size: .9rem; font-weight: 700; color: #2d3436; margin: 4px 0 8px;
+  }
+  .cal-textarea {
+    width: 100%; min-height: 150px; max-height: 280px; border: 1.5px solid #e0e0e0; border-radius: 8px;
+    padding: 12px 14px; font-size: .9rem; font-family: inherit; resize: vertical;
+    outline: none; line-height: 1.55; color: #2d3436;
+    transition: border-color .15s;
+  }
+  .cal-textarea:focus { border-color: #6c5ce7; }
+  .cal-textarea::placeholder { color: #bbb; font-style: italic; }
+  .cal-textarea:disabled { background: #fafafa; color: #aaa; cursor: not-allowed; }
+  .cal-status {
+    font-size: .72rem; color: #999; margin-top: 6px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .cal-saved-flash { color: #00b894; opacity: 0; transition: opacity .3s; font-weight: 600; }
+  .cal-saved-flash.show { opacity: 1; }
+
   #view-toggle-btn {
     background: #fff; border: 1.5px solid #6c5ce7; padding: 8px 14px;
     border-radius: 8px; cursor: pointer; font-size: .9rem; font-weight: 600;
@@ -715,6 +794,7 @@
     <button id="view-toggle-btn" title="Toggle between Parallel and Focus view">🎯 Focus</button>
     <button id="export-btn" title="Export board as JSON">Export</button>
     <label id="import-btn" title="Import board from JSON">Import<input type="file" id="import-file" accept=".json" style="display:none" /></label>
+    <button id="calendar-btn" title="Daily calendar log">📅 Log</button>
     <button id="add-track-btn">+ Add Track</button>
     <button id="settings-btn">&#x2699; Settings</button>
   </div>
@@ -817,6 +897,30 @@
     <div class="modal-actions">
       <button class="btn-cancel" id="settings-cancel">Cancel</button>
       <button class="btn-save" id="settings-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Calendar Log Modal -->
+<div class="modal-overlay" id="calendar-modal">
+  <div class="modal calendar-modal">
+    <div class="cal-header">
+      <h2>📅 Daily Log</h2>
+      <button class="cal-close-btn" id="cal-close" title="Close (Esc)">✕</button>
+    </div>
+    <div class="cal-nav">
+      <button class="cal-nav-btn" id="cal-prev" title="Previous month">◀</button>
+      <select id="cal-month" title="Month"></select>
+      <select id="cal-year" title="Year"></select>
+      <button class="cal-nav-btn" id="cal-next" title="Next month">▶</button>
+      <button class="cal-today-btn" id="cal-today" title="Jump to today">Today</button>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div class="cal-selected-label" id="cal-selected-label">— Select a day —</div>
+    <textarea class="cal-textarea" id="cal-textarea" placeholder="What did you do? Wins, blockers, notes — anything you'll want to come back to..." disabled></textarea>
+    <div class="cal-status">
+      <span id="cal-month-summary">0 entries this month</span>
+      <span class="cal-saved-flash" id="cal-saved-flash">Saved ✓</span>
     </div>
   </div>
 </div>
@@ -1740,7 +1844,8 @@ document.getElementById('archive-list').addEventListener('click', e => {
 // --- Export / Import ---
 document.getElementById('export-btn').addEventListener('click', () => {
   const data = load();
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const exportData = { ...data, calendarLogs: loadCalendarLogs() };
+  const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -1757,8 +1862,14 @@ document.getElementById('import-file').addEventListener('change', (e) => {
     try {
       const data = JSON.parse(ev.target.result);
       if (!data.tracks || !Array.isArray(data.tracks)) { alert('Invalid file: missing tracks array'); return; }
-      if (!confirm(`Import ${data.tracks.length} tracks? This will replace your current board.`)) return;
-      save(data);
+      const hasLogs = data.calendarLogs && typeof data.calendarLogs === 'object';
+      const msg = hasLogs
+        ? `Import ${data.tracks.length} tracks and ${Object.keys(data.calendarLogs).length} calendar log entries? This will replace your current board and logs.`
+        : `Import ${data.tracks.length} tracks? This will replace your current board.`;
+      if (!confirm(msg)) return;
+      const tracksOnly = { tracks: data.tracks };
+      save(tracksOnly);
+      if (hasLogs) saveCalendarLogs(data.calendarLogs);
       onStateChange();
     } catch (err) { alert('Failed to parse JSON: ' + err.message); }
   };
@@ -2631,6 +2742,239 @@ Line 2: A warm encouraging sentence — like talking to a friend. Tell them they
     triggerAINudge();
   }
 })();
+
+// --- Calendar Log ---
+const CALENDAR_LOGS_KEY = 'parallel_mind_map_calendar_logs';
+
+function loadCalendarLogs() {
+  try { return JSON.parse(localStorage.getItem(CALENDAR_LOGS_KEY)) || {}; }
+  catch { return {}; }
+}
+function saveCalendarLogs(logs) {
+  localStorage.setItem(CALENDAR_LOGS_KEY, JSON.stringify(logs));
+}
+
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DOW_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+function fmtDateKey(y, m, d) {
+  return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+function todayDateKey() {
+  const t = new Date();
+  return fmtDateKey(t.getFullYear(), t.getMonth(), t.getDate());
+}
+
+const calState = (() => {
+  const t = new Date();
+  return { year: t.getFullYear(), month: t.getMonth(), selected: null, saveTimer: null, savedFlashTimer: null };
+})();
+
+function openCalendar() {
+  if (!calState.selected) calState.selected = todayDateKey();
+  // Ensure currently-viewed month covers selected day
+  const [sy, sm] = calState.selected.split('-').map(Number);
+  calState.year = sy;
+  calState.month = sm - 1;
+  renderCalendar();
+  document.getElementById('calendar-modal').classList.add('show');
+  // Focus textarea after a short tick so layout is settled
+  setTimeout(() => {
+    const ta = document.getElementById('cal-textarea');
+    if (ta && !ta.disabled) ta.focus();
+  }, 50);
+}
+
+function closeCalendar() {
+  flushCalendarSave();
+  document.getElementById('calendar-modal').classList.remove('show');
+}
+
+function flushCalendarSave() {
+  if (calState.saveTimer) {
+    clearTimeout(calState.saveTimer);
+    calState.saveTimer = null;
+    saveCurrentDayText(false);
+  }
+}
+
+function saveCurrentDayText(showFlash) {
+  if (!calState.selected) return;
+  const ta = document.getElementById('cal-textarea');
+  if (!ta) return;
+  const logs = loadCalendarLogs();
+  const text = ta.value;
+  if (text.trim() === '') delete logs[calState.selected];
+  else logs[calState.selected] = text;
+  saveCalendarLogs(logs);
+  // Update dot on the selected day cell
+  const cell = document.querySelector(`.cal-day[data-date="${calState.selected}"]`);
+  if (cell) {
+    if (text.trim() === '') cell.classList.remove('has-log');
+    else cell.classList.add('has-log');
+  }
+  updateMonthSummary();
+  if (showFlash) {
+    const flash = document.getElementById('cal-saved-flash');
+    flash.classList.add('show');
+    if (calState.savedFlashTimer) clearTimeout(calState.savedFlashTimer);
+    calState.savedFlashTimer = setTimeout(() => flash.classList.remove('show'), 1200);
+  }
+}
+
+function updateMonthSummary() {
+  const logs = loadCalendarLogs();
+  let count = 0;
+  const prefix = `${calState.year}-${String(calState.month+1).padStart(2,'0')}-`;
+  Object.keys(logs).forEach(k => {
+    if (k.startsWith(prefix) && logs[k] && logs[k].trim()) count++;
+  });
+  document.getElementById('cal-month-summary').textContent =
+    `${count} ${count === 1 ? 'entry' : 'entries'} this month`;
+}
+
+function renderCalendar() {
+  const logs = loadCalendarLogs();
+  const monthSel = document.getElementById('cal-month');
+  const yearSel = document.getElementById('cal-year');
+
+  if (monthSel.options.length === 0) {
+    MONTH_NAMES.forEach((m, i) => {
+      const opt = document.createElement('option');
+      opt.value = i; opt.textContent = m;
+      monthSel.appendChild(opt);
+    });
+  }
+  monthSel.value = calState.month;
+
+  // Rebuild years if year goes out of current range
+  const cy = new Date().getFullYear();
+  const minY = Math.min(cy - 10, calState.year);
+  const maxY = Math.max(cy + 10, calState.year);
+  const needsRebuild = yearSel.options.length === 0 ||
+    parseInt(yearSel.options[0].value) !== minY ||
+    parseInt(yearSel.options[yearSel.options.length - 1].value) !== maxY;
+  if (needsRebuild) {
+    yearSel.innerHTML = '';
+    for (let y = minY; y <= maxY; y++) {
+      const opt = document.createElement('option');
+      opt.value = y; opt.textContent = y;
+      yearSel.appendChild(opt);
+    }
+  }
+  yearSel.value = calState.year;
+
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => {
+    const h = document.createElement('div');
+    h.className = 'cal-dow'; h.textContent = d;
+    grid.appendChild(h);
+  });
+
+  const firstDay = new Date(calState.year, calState.month, 1).getDay();
+  const daysInMonth = new Date(calState.year, calState.month + 1, 0).getDate();
+  const todayK = todayDateKey();
+
+  for (let i = 0; i < firstDay; i++) {
+    const empty = document.createElement('div');
+    empty.className = 'cal-day empty';
+    grid.appendChild(empty);
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateKey = fmtDateKey(calState.year, calState.month, d);
+    const cell = document.createElement('button');
+    cell.type = 'button';
+    cell.className = 'cal-day';
+    cell.dataset.date = dateKey;
+    cell.textContent = d;
+    if (logs[dateKey] && logs[dateKey].trim()) cell.classList.add('has-log');
+    if (dateKey === todayK) cell.classList.add('today');
+    if (dateKey === calState.selected) cell.classList.add('selected');
+    grid.appendChild(cell);
+  }
+
+  updateSelectedDayUI();
+  updateMonthSummary();
+}
+
+function updateSelectedDayUI() {
+  const label = document.getElementById('cal-selected-label');
+  const ta = document.getElementById('cal-textarea');
+  if (!calState.selected) {
+    label.textContent = '— Select a day —';
+    ta.value = '';
+    ta.disabled = true;
+    return;
+  }
+  ta.disabled = false;
+  const [y, m, d] = calState.selected.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  label.textContent = `${DOW_NAMES[date.getDay()]}, ${MONTH_NAMES[m-1]} ${d}, ${y}`;
+  const logs = loadCalendarLogs();
+  ta.value = logs[calState.selected] || '';
+}
+
+// Wire up calendar events
+document.getElementById('calendar-btn').addEventListener('click', openCalendar);
+document.getElementById('cal-close').addEventListener('click', closeCalendar);
+document.getElementById('calendar-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeCalendar();
+});
+document.getElementById('cal-prev').addEventListener('click', () => {
+  flushCalendarSave();
+  calState.month--;
+  if (calState.month < 0) { calState.month = 11; calState.year--; }
+  renderCalendar();
+});
+document.getElementById('cal-next').addEventListener('click', () => {
+  flushCalendarSave();
+  calState.month++;
+  if (calState.month > 11) { calState.month = 0; calState.year++; }
+  renderCalendar();
+});
+document.getElementById('cal-today').addEventListener('click', () => {
+  flushCalendarSave();
+  const t = new Date();
+  calState.year = t.getFullYear();
+  calState.month = t.getMonth();
+  calState.selected = todayDateKey();
+  renderCalendar();
+  const ta = document.getElementById('cal-textarea');
+  if (ta && !ta.disabled) ta.focus();
+});
+document.getElementById('cal-month').addEventListener('change', e => {
+  flushCalendarSave();
+  calState.month = parseInt(e.target.value, 10);
+  renderCalendar();
+});
+document.getElementById('cal-year').addEventListener('change', e => {
+  flushCalendarSave();
+  calState.year = parseInt(e.target.value, 10);
+  renderCalendar();
+});
+document.getElementById('cal-grid').addEventListener('click', e => {
+  const cell = e.target.closest('.cal-day');
+  if (!cell || cell.classList.contains('empty')) return;
+  flushCalendarSave();
+  document.querySelectorAll('.cal-day.selected').forEach(el => el.classList.remove('selected'));
+  cell.classList.add('selected');
+  calState.selected = cell.dataset.date;
+  updateSelectedDayUI();
+  document.getElementById('cal-textarea').focus();
+});
+document.getElementById('cal-textarea').addEventListener('input', () => {
+  if (calState.saveTimer) clearTimeout(calState.saveTimer);
+  calState.saveTimer = setTimeout(() => {
+    saveCurrentDayText(true);
+    calState.saveTimer = null;
+  }, 350);
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('calendar-modal').classList.contains('show')) {
+    closeCalendar();
+  }
+});
 </script>
 <div id="image-popup-overlay">
   <div id="image-popup">
